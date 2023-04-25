@@ -10,13 +10,6 @@ export class ManageProductsService extends ApiService {
   }
 
   uploadProductsCSV(file: File): Observable<unknown> {
-    if (!this.endpointEnabled('import')) {
-      console.warn(
-        'Endpoint "import" is disabled. To enable change your environment.ts config'
-      );
-      return EMPTY;
-    }
-
     return this.getPreSignedUrl(file.name).pipe(
       switchMap((url) =>
         this.http.put(url, file, {
@@ -30,12 +23,17 @@ export class ManageProductsService extends ApiService {
   }
 
   private getPreSignedUrl(fileName: string): Observable<string> {
-    const url = this.getUrl('import', 'import');
-
-    return this.http.get<string>(url, {
-      params: {
-        name: fileName,
-      },
-    });
+    return this.http.get<string>(
+      'https://k0lwegv1sa.execute-api.eu-west-1.amazonaws.com/dev/import',
+      {
+        params: {
+          name: fileName,
+        },
+        headers: {
+          // eslint-disable-next-line @typescript-eslint/naming-convention
+          Authorization: `Basic ${localStorage.getItem('authorization_token')}`,
+        },
+      }
+    );
   }
 }
